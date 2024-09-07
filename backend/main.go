@@ -19,6 +19,7 @@ func handleReadyness(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	mux := http.NewServeMux()
+	scrapeCfasociety()
 	godotenv.Load()
 
 	port := os.Getenv("PORT")
