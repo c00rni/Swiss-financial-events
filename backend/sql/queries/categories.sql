@@ -7,3 +7,8 @@ RETURNING *;
 SELECT *
 FROM categories
 WHERE name = ?;
+
+-- name: GetCategories :many
+SELECT *
+FROM categories
+ORDER BY name;

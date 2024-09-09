@@ -7,3 +7,8 @@ RETURNING *;
 SELECT *
 FROM topics
 WHERE name = ?;
+
+-- name: GetTopics :many
+SELECT *
+FROM topics
+ORDER BY name;

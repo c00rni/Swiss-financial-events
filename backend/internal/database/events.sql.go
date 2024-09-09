@@ -55,6 +55,7 @@ func (q *Queries) CreateEvent(ctx context.Context, arg CreateEventParams) (Event
 const getEvents = `-- name: GetEvents :many
 SELECT id, title, link, address, location, start_at, end_at, description
 FROM events
+WHERE end_at > DATE('now')
 ORDER BY start_at
 `
 
@@ -110,4 +111,58 @@ func (q *Queries) GetEventsByLink(ctx context.Context, link string) (Event, erro
 		&i.Description,
 	)
 	return i, err
+}
+
+const getFilteredEvents = `-- name: GetFilteredEvents :many
+SELECT id, title, link, address, location, start_at, end_at, description
+FROM events as e
+WHERE e.location LIKE ?
+AND e.end_at > DATE('now')
+AND e.id IN (SELECT DISTINCT ec.event_id
+                FROM eventCategories as ec, categories as c
+                WHERE ec.category_id = c.id
+                AND c.name LIKE ?)
+AND e.id IN (SELECT DISTINCT et.event_id
+            FROM eventTopics as et, topics as t
+            WHERE et.topic_id = t.id
+            AND t.name LIKE ?)
+ORDER BY start_at
+`
+
+type GetFilteredEventsParams struct {
+	Location string
+	Name     string
+	Name_2   string
+}
+
+func (q *Queries) GetFilteredEvents(ctx context.Context, arg GetFilteredEventsParams) ([]Event, error) {
+	rows, err := q.db.QueryContext(ctx, getFilteredEvents, arg.Location, arg.Name, arg.Name_2)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Event
+	for rows.Next() {
+		var i Event
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Link,
+			&i.Address,
+			&i.Location,
+			&i.StartAt,
+			&i.EndAt,
+			&i.Description,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

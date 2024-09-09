@@ -39,3 +39,32 @@ func (q *Queries) GetTopicByName(ctx context.Context, name string) (Topic, error
 	err := row.Scan(&i.ID, &i.Name)
 	return i, err
 }
+
+const getTopics = `-- name: GetTopics :many
+SELECT id, name
+FROM topics
+ORDER BY name
+`
+
+func (q *Queries) GetTopics(ctx context.Context) ([]Topic, error) {
+	rows, err := q.db.QueryContext(ctx, getTopics)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Topic
+	for rows.Next() {
+		var i Topic
+		if err := rows.Scan(&i.ID, &i.Name); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

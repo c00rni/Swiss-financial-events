@@ -35,7 +35,23 @@ func (cfg *apiConfig) scrapeCfasocietyTopics() {
 				h.Request.Visit(h.Attr("href"))
 				id := uuid.New().String()
 				linkSplit := strings.Split(link, "=")
-				topicName := linkSplit[1]
+				topicName := strings.ReplaceAll(strings.ToLower(linkSplit[1]), " ", "_")
+				topic := database.AddTopicParams{
+					ID:   id,
+					Name: topicName,
+				}
+				_, err := cfg.DB.AddTopic(context.Background(), topic)
+				if err == nil {
+					log.Printf("Topic '%v' has been added.", topicName)
+				}
+				cat, err := cfg.DB.GetTopicByName(context.Background(), topicName)
+				if err != nil {
+					log.Println(err)
+				}
+				topics[topicName] = cat.ID
+			} else {
+				id := uuid.New().String()
+				topicName := "all"
 				topic := database.AddTopicParams{
 					ID:   id,
 					Name: topicName,
@@ -57,7 +73,26 @@ func (cfg *apiConfig) scrapeCfasocietyTopics() {
 		fullURL := e.Request.URL.String()
 		if strings.Contains(fullURL, "topic=") {
 			linkSplit := strings.Split(fullURL, "=")
-			topicName := linkSplit[1]
+			topicName := strings.ReplaceAll(strings.ToLower(linkSplit[1]), " ", "_")
+			event, err := cfg.DB.GetEventsByLink(context.Background(), domain+e.Attr("href"))
+			if err != nil {
+				log.Println(err)
+				return
+			}
+
+			topicId, ok := topics[topicName]
+			if !ok {
+				log.Printf("Topics '%v' not found", topicId)
+				return
+			}
+
+			params := database.LinkEventToTopicParams{
+				EventID: event.ID,
+				TopicID: topicId,
+			}
+			cfg.DB.LinkEventToTopic(context.Background(), params)
+		} else {
+			topicName := "all"
 			event, err := cfg.DB.GetEventsByLink(context.Background(), domain+e.Attr("href"))
 			if err != nil {
 				log.Println(err)
@@ -101,7 +136,23 @@ func (cfg *apiConfig) scrapeCfasocietyCategories() {
 				h.Request.Visit(h.Attr("href"))
 				id := uuid.New().String()
 				linkSplit := strings.Split(link, "=")
-				categoryName := linkSplit[1]
+				categoryName := strings.ReplaceAll(strings.ToLower(linkSplit[1]), " ", "_")
+				category := database.AddCategoryParams{
+					ID:   id,
+					Name: categoryName,
+				}
+				_, err := cfg.DB.AddCategory(context.Background(), category)
+				if err == nil {
+					log.Printf("Category '%v' has been added.", categoryName)
+				}
+				cat, err := cfg.DB.GetCategoryByName(context.Background(), categoryName)
+				if err != nil {
+					log.Println(err)
+				}
+				categories[categoryName] = cat.ID
+			} else {
+				categoryName := "all"
+				id := uuid.New().String()
 				category := database.AddCategoryParams{
 					ID:   id,
 					Name: categoryName,
@@ -123,7 +174,26 @@ func (cfg *apiConfig) scrapeCfasocietyCategories() {
 		fullURL := e.Request.URL.String()
 		if strings.Contains(fullURL, "category=") {
 			linkSplit := strings.Split(fullURL, "=")
-			categoryName := linkSplit[1]
+			categoryName := strings.ReplaceAll(strings.ToLower(linkSplit[1]), " ", "_")
+			event, err := cfg.DB.GetEventsByLink(context.Background(), domain+e.Attr("href"))
+			if err != nil {
+				log.Println(err)
+				return
+			}
+
+			categoryId, ok := categories[categoryName]
+			if !ok {
+				log.Printf("Category '%v' not found", categoryId)
+				return
+			}
+
+			params := database.LinkEventToCategoryParams{
+				EventID:    event.ID,
+				CategoryID: categoryId,
+			}
+			cfg.DB.LinkEventToCategory(context.Background(), params)
+		} else {
+			categoryName := "all"
 			event, err := cfg.DB.GetEventsByLink(context.Background(), domain+e.Attr("href"))
 			if err != nil {
 				log.Println(err)

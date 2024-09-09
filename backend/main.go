@@ -22,13 +22,54 @@ func handleReadyness(w http.ResponseWriter, r *http.Request) {
 }
 
 func (cfg *apiConfig) handleGetEvents(w http.ResponseWriter, r *http.Request) {
-	events, err := cfg.DB.GetEvents(r.Context())
+
+	location := r.URL.Query().Get("location")
+	if location == "" {
+		location = "%"
+	}
+	category := r.URL.Query().Get("category")
+	if category == "" {
+		category = "%"
+	}
+	topic := r.URL.Query().Get("topic")
+	if topic == "" {
+		topic = "%"
+	}
+	params := database.GetFilteredEventsParams{
+		Location: location,
+		Name:     category,
+		Name_2:   topic,
+	}
+
+	events, err := cfg.DB.GetFilteredEvents(r.Context(), params)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Internal error")
 		return
 	}
 
 	respondWithJSON(w, http.StatusOK, events)
+	return
+}
+
+func (cfg *apiConfig) handleGetCategories(w http.ResponseWriter, r *http.Request) {
+	names, err := cfg.DB.GetCategories(r.Context())
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Internal error")
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, names)
+	return
+}
+
+func (cfg *apiConfig) handleGetTopics(w http.ResponseWriter, r *http.Request) {
+	names, err := cfg.DB.GetTopics(r.Context())
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Internal error")
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, names)
 	return
 }
 
@@ -53,6 +94,7 @@ func main() {
 		log.Fatalf("Error: %v", err)
 		return
 	}
+
 	defer db.Close()
 	dbQueries := database.New(db)
 
@@ -66,6 +108,8 @@ func main() {
 	apiCfg.scrapeCfasocietyTopics()
 	mux.HandleFunc("GET /api/healthz", handleReadyness)
 	mux.HandleFunc("GET /api/events", apiCfg.handleGetEvents)
+	mux.HandleFunc("GET /api/categories", apiCfg.handleGetCategories)
+	mux.HandleFunc("GET /api/topics", apiCfg.handleGetTopics)
 
 	srv := &http.Server{
 		Handler: mux,
