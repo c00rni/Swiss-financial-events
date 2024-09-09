@@ -11,10 +11,6 @@ import (
 	"time"
 )
 
-type swissCfaEvent struct {
-	Date time.Time
-}
-
 func (cfg *apiConfig) scrapeCfasocietyTopics() {
 	c := colly.NewCollector()
 	c.AllowURLRevisit = false
@@ -263,4 +259,13 @@ func (cfg *apiConfig) scrapeCfasocietyEvents() {
 	})
 
 	c.Visit(domain + "/events/event-calendar/")
+}
+
+func (cfg apiConfig) scrapCfasociety(timeBetweenRequest time.Duration) {
+	ticker := time.NewTicker(timeBetweenRequest)
+	for ; ; <-ticker.C {
+		cfg.scrapeCfasocietyEvents()
+		cfg.scrapeCfasocietyCategories()
+		cfg.scrapeCfasocietyTopics()
+	}
 }

@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 )
 
 type apiConfig struct {
@@ -103,14 +104,12 @@ func main() {
 		DB:   dbQueries,
 	}
 
-	apiCfg.scrapeCfasocietyEvents()
-	apiCfg.scrapeCfasocietyCategories()
-	apiCfg.scrapeCfasocietyTopics()
 	mux.HandleFunc("GET /api/healthz", handleReadyness)
 	mux.HandleFunc("GET /api/events", apiCfg.handleGetEvents)
 	mux.HandleFunc("GET /api/categories", apiCfg.handleGetCategories)
 	mux.HandleFunc("GET /api/topics", apiCfg.handleGetTopics)
 
+	go apiCfg.scrapCfasociety(time.Hour * 6)
 	srv := &http.Server{
 		Handler: mux,
 		Addr:    ":" + apiCfg.port,
