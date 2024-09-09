@@ -15,6 +15,72 @@ type swissCfaEvent struct {
 	Date time.Time
 }
 
+func (cfg *apiConfig) scrapeCfasocietyTopics() {
+	c := colly.NewCollector()
+	c.AllowURLRevisit = false
+	domain := "https://cfasocietyswitzerland.org"
+	topics := map[string]string{}
+
+	c.OnRequest(func(r *colly.Request) {
+		fmt.Println("Visiting ", r.URL)
+	})
+
+	c.OnError(func(_ *colly.Response, err error) {
+		fmt.Println("Something went wrong:", err)
+	})
+
+	c.OnHTML(".dropdown-menu", func(e *colly.HTMLElement) {
+		e.ForEach("a", func(_ int, h *colly.HTMLElement) {
+			if link := h.Attr("href"); strings.Contains(link, "topic=") {
+				h.Request.Visit(h.Attr("href"))
+				id := uuid.New().String()
+				linkSplit := strings.Split(link, "=")
+				topicName := linkSplit[1]
+				topic := database.AddTopicParams{
+					ID:   id,
+					Name: topicName,
+				}
+				_, err := cfg.DB.AddTopic(context.Background(), topic)
+				if err == nil {
+					log.Printf("Topic '%v' has been added.", topicName)
+				}
+				cat, err := cfg.DB.GetTopicByName(context.Background(), topicName)
+				if err != nil {
+					log.Println(err)
+				}
+				topics[topicName] = cat.ID
+			}
+		})
+	})
+
+	c.OnHTML(".events__teaser__link", func(e *colly.HTMLElement) {
+		fullURL := e.Request.URL.String()
+		if strings.Contains(fullURL, "topic=") {
+			linkSplit := strings.Split(fullURL, "=")
+			topicName := linkSplit[1]
+			event, err := cfg.DB.GetEventsByLink(context.Background(), domain+e.Attr("href"))
+			if err != nil {
+				log.Println(err)
+				return
+			}
+
+			topicId, ok := topics[topicName]
+			if !ok {
+				log.Printf("Topics '%v' not found", topicId)
+				return
+			}
+
+			params := database.LinkEventToTopicParams{
+				EventID: event.ID,
+				TopicID: topicId,
+			}
+			cfg.DB.LinkEventToTopic(context.Background(), params)
+		}
+	})
+
+	c.Visit(domain + "/events/event-calendar/")
+}
+
 func (cfg *apiConfig) scrapeCfasocietyCategories() {
 	c := colly.NewCollector()
 	c.AllowURLRevisit = false

@@ -28,3 +28,13 @@ type EventCategory struct {
 	EventID    string
 	CategoryID string
 }
+
+type EventTopic struct {
+	EventID string
+	TopicID string
+}
+
+type Topic struct {
+	ID   string
+	Name string
+}

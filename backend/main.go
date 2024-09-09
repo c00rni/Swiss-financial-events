@@ -63,6 +63,7 @@ func main() {
 
 	apiCfg.scrapeCfasocietyEvents()
 	apiCfg.scrapeCfasocietyCategories()
+	apiCfg.scrapeCfasocietyTopics()
 	mux.HandleFunc("GET /api/healthz", handleReadyness)
 	mux.HandleFunc("GET /api/events", apiCfg.handleGetEvents)
 
