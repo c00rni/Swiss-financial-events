@@ -8,6 +8,11 @@ import (
 	"time"
 )
 
+type Category struct {
+	ID   string
+	Name string
+}
+
 type Event struct {
 	ID          string
 	Title       string
@@ -17,4 +22,9 @@ type Event struct {
 	StartAt     time.Time
 	EndAt       time.Time
 	Description string
+}
+
+type EventCategory struct {
+	EventID    string
+	CategoryID string
 }

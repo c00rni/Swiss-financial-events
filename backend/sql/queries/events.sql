@@ -7,3 +7,8 @@ RETURNING *;
 SELECT *
 FROM events
 ORDER BY start_at;
+
+-- name: GetEventsByLink :one
+SELECT *
+FROM events
+WHERE link = ?;

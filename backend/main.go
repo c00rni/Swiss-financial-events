@@ -61,7 +61,8 @@ func main() {
 		DB:   dbQueries,
 	}
 
-	apiCfg.scrapeCfasociety()
+	apiCfg.scrapeCfasocietyEvents()
+	apiCfg.scrapeCfasocietyCategories()
 	mux.HandleFunc("GET /api/healthz", handleReadyness)
 	mux.HandleFunc("GET /api/events", apiCfg.handleGetEvents)
 

@@ -89,3 +89,25 @@ func (q *Queries) GetEvents(ctx context.Context) ([]Event, error) {
 	}
 	return items, nil
 }
+
+const getEventsByLink = `-- name: GetEventsByLink :one
+SELECT id, title, link, address, location, start_at, end_at, description
+FROM events
+WHERE link = ?
+`
+
+func (q *Queries) GetEventsByLink(ctx context.Context, link string) (Event, error) {
+	row := q.db.QueryRowContext(ctx, getEventsByLink, link)
+	var i Event
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Link,
+		&i.Address,
+		&i.Location,
+		&i.StartAt,
+		&i.EndAt,
+		&i.Description,
+	)
+	return i, err
+}
