@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -25,6 +27,15 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) error
 	w.WriteHeader(code)
 	w.Write(response)
 	return nil
+}
+
+func generateApiKey() (string, error) {
+	randBytes := make([]byte, 32)
+	_, err := rand.Read(randBytes)
+	if err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(randBytes), nil
 }
 
 func respondWithError(w http.ResponseWriter, code int, errorMessage string) error {

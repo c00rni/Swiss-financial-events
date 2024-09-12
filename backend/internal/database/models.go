@@ -38,3 +38,15 @@ type Topic struct {
 	ID   string
 	Name string
 }
+
+type User struct {
+	ID            string
+	Email         string
+	VerifiedEmail bool
+	Name          string
+	GivenName     string
+	FamilyName    string
+	Picture       string
+	Token         string
+	ApiKey        string
+}
