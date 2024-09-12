@@ -161,3 +161,11 @@ func decodeJSONBody(r *http.Request, ptr interface{}) error {
 	}
 	return nil
 }
+
+func extractAuthorization(r *http.Request, prefix string) (string, error) {
+	target, found := strings.CutPrefix(r.Header.Get("Authorization"), prefix)
+	if !found {
+		return target, errors.New(fmt.Sprintf("Prefix '%v' not found.", prefix))
+	}
+	return target, nil
+}

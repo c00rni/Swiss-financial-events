@@ -41,13 +41,13 @@ type Goauth struct {
 	Picture       string `json:"picture"`
 }
 
-func handleReadyness(w http.ResponseWriter, r *http.Request) {
+func handleReadyness(w http.ResponseWriter, r *http.Request, user database.User) {
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("OK"))
 	return
 }
 
-func (cfg *apiConfig) handleGetEvents(w http.ResponseWriter, r *http.Request) {
+func (cfg *apiConfig) handleGetEvents(w http.ResponseWriter, r *http.Request, user database.User) {
 
 	location := r.URL.Query().Get("location")
 	if location == "" {
@@ -77,7 +77,7 @@ func (cfg *apiConfig) handleGetEvents(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func (cfg *apiConfig) handleGetCategories(w http.ResponseWriter, r *http.Request) {
+func (cfg *apiConfig) handleGetCategories(w http.ResponseWriter, r *http.Request, user database.User) {
 	names, err := cfg.DB.GetCategories(r.Context())
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Internal error")
@@ -88,7 +88,7 @@ func (cfg *apiConfig) handleGetCategories(w http.ResponseWriter, r *http.Request
 	return
 }
 
-func (cfg *apiConfig) handleGetTopics(w http.ResponseWriter, r *http.Request) {
+func (cfg *apiConfig) handleGetTopics(w http.ResponseWriter, r *http.Request, user database.User) {
 	names, err := cfg.DB.GetTopics(r.Context())
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Internal error")
@@ -156,7 +156,7 @@ func (cfg *apiConfig) handleOauthCallback(w http.ResponseWriter, r *http.Request
 		Value:    fmt.Sprintf("apiKey=%v,name=%v,picture=%v", user.ApiKey, user.Name, user.Picture),
 		MaxAge:   60 * 60 * 24,
 		Secure:   true,
-		HttpOnly: true,
+		HttpOnly: false,
 		Path:     "/",
 	}
 	http.SetCookie(w, cookie)
@@ -164,7 +164,7 @@ func (cfg *apiConfig) handleOauthCallback(w http.ResponseWriter, r *http.Request
 	session.Options = &sessions.Options{
 		Path:     "/",
 		MaxAge:   60 * 60 * 3,
-		HttpOnly: true,
+		HttpOnly: false,
 	}
 	session.Values["email"] = user.Email
 	err = session.Save(r, w)
@@ -226,7 +226,7 @@ func (cfg *apiConfig) handleRenewApiKey(w http.ResponseWriter, r *http.Request, 
 		Value:    fmt.Sprintf("apiKey=%v,name=%v,picture=%v", user.ApiKey, user.Name, user.Picture),
 		MaxAge:   60 * 60 * 24,
 		Secure:   true,
-		HttpOnly: true,
+		HttpOnly: false,
 		Path:     "/",
 	}
 	http.SetCookie(w, cookie)
@@ -264,7 +264,7 @@ func (cfg *apiConfig) handleLogout(w http.ResponseWriter, r *http.Request, user 
 		Value:    "",
 		MaxAge:   0,
 		Secure:   true,
-		HttpOnly: true,
+		HttpOnly: false,
 		Path:     "/",
 	}
 	http.SetCookie(w, cookie)
@@ -296,7 +296,6 @@ func main() {
 		MaxAge:           300, // Maximum value not ignored by any of major browsers
 	}))
 	godotenv.Load()
-	//filepathRoot := "./dist"
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -320,7 +319,7 @@ func main() {
 	authConf := &oauth2.Config{
 		ClientID:     os.Getenv("GCP_CLIENT_ID"),
 		ClientSecret: os.Getenv("GCP_CLIENT_SECRET"),
-		RedirectURL:  "https://localhost:8080/auth/callback",
+		RedirectURL:  os.Getenv("OAUTH_CALLBACK_URI"),
 		Scopes: []string{
 			"email",
 			"profile",
@@ -341,10 +340,10 @@ func main() {
 
 	// Require Api key
 	v1Router := chi.NewRouter()
-	v1Router.Get("/events", apiCfg.handleGetEvents)
-	v1Router.Get("/categories", apiCfg.handleGetCategories)
-	v1Router.Get("/topics", apiCfg.handleGetTopics)
-	v1Router.Get("/healthz", handleReadyness)
+	v1Router.Get("/events", apiCfg.middlewareApiToken(apiCfg.handleGetEvents))
+	v1Router.Get("/categories", apiCfg.middlewareApiToken(apiCfg.handleGetCategories))
+	v1Router.Get("/topics", apiCfg.middlewareApiToken(apiCfg.handleGetTopics))
+	v1Router.Get("/healthz", apiCfg.middlewareApiToken(handleReadyness))
 	router.Mount("/v1", v1Router)
 
 	// Require Authentificaiton
@@ -360,7 +359,7 @@ func main() {
 	router.Get("/auth/oauth", apiCfg.handleOauth)
 	router.Get("/auth/callback", apiCfg.handleOauthCallback)
 
-	//	go apiCfg.scrapCfasociety(time.Hour * 6)
+	go apiCfg.scrapCfasociety(time.Hour * 6)
 
 	srv := &http.Server{
 		Handler: router,

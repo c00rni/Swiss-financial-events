@@ -28,3 +28,22 @@ func (cfg *apiConfig) middlewareSession(handler authedHandler) http.HandlerFunc 
 		handler(w, r, user)
 	})
 }
+
+func (cfg *apiConfig) middlewareApiToken(handler authedHandler) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		apiKey, err := extractAuthorization(r, "Bearer ")
+		if err != nil {
+			respondWithError(w, http.StatusUnauthorized, "Unauthorized")
+			return
+		}
+
+		user, err := cfg.DB.GetUserByApiKey(r.Context(), apiKey)
+		if err != nil {
+			respondWithError(w, http.StatusInternalServerError, "Couldn't get the user form thr database.")
+			log.Println(err)
+			return
+		}
+
+		handler(w, r, user)
+	})
+}

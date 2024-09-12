@@ -8,6 +8,11 @@ SELECT *
 FROM users
 WHERE email = ?;
 
+-- name: GetUserByApiKey :one
+SELECT *
+FROM users
+WHERE api_key = ?;
+
 -- name: UpdateUser :one
 UPDATE users
 SET (verified_email, name, given_name, family_name, picture, token) = (?, ?, ?, ?, ?, ?)
