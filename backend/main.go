@@ -357,7 +357,7 @@ func main() {
 	v1Router.Get("/categories", apiCfg.middlewareApiToken(apiCfg.handleGetCategories))
 	v1Router.Get("/topics", apiCfg.middlewareApiToken(apiCfg.handleGetTopics))
 	v1Router.Get("/healthz", apiCfg.middlewareApiToken(handleReadyness))
-	router.Mount("/v1", v1Router)
+	apiRouter.Mount("/v1", v1Router)
 
 	// Require Authentificaiton
 	router.Group(func(r chi.Router) {

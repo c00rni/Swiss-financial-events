@@ -14,7 +14,6 @@ func (cfg *apiConfig) middlewareSession(handler authedHandler) http.HandlerFunc 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		session, _ := store.Get(r, "session_id")
 		email, ok := session.Values["email"]
-		log.Println(email, ok)
 		if !ok {
 			http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 			return

@@ -2,7 +2,7 @@
 
 Unffocial API for [CFA society](https://cfasocietyswitzerland.org/) events in Swizterland. A helpful API for any developer or service who wants to develop application around CFA society events in Swizterland.
 
-Navigate to []() for API documentation.
+Navigate to [SwaggerHub](https://app.swaggerhub.com/apis/AntonyGandonoumigan/unofficial-cfa_society_switzerland_api/1.0.0#/default/get_api_v1_events) for API documentation.
 
 ## Install locally
 
