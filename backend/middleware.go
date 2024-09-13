@@ -2,8 +2,10 @@ package main
 
 import (
 	"github.com/c00rni/Swiss-financial-events/internal/database"
+	"github.com/google/uuid"
 	"log"
 	"net/http"
+	"time"
 )
 
 type authedHandler func(http.ResponseWriter, *http.Request, database.User)
@@ -39,11 +41,21 @@ func (cfg *apiConfig) middlewareApiToken(handler authedHandler) http.HandlerFunc
 
 		user, err := cfg.DB.GetUserByApiKey(r.Context(), apiKey)
 		if err != nil {
-			respondWithError(w, http.StatusInternalServerError, "Couldn't get the user form thr database.")
+			respondWithError(w, http.StatusInternalServerError, "Databse error")
 			log.Println(err)
 			return
 		}
 
+		_, err = cfg.DB.CreateRequest(r.Context(), database.CreateRequestParams{
+			ID:     uuid.NewString(),
+			UserID: user.ID,
+			Date:   time.Now(),
+		})
+		if err != nil {
+			respondWithError(w, http.StatusInternalServerError, "Database error")
+			log.Println(err)
+			return
+		}
 		handler(w, r, user)
 	})
 }

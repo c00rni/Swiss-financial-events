@@ -58,12 +58,11 @@ export default function Dashbobard() {
   }
 
   useEffect(() => {
-    const userInfo = getCookie("user").replace('"', '')
+    const userInfo = getCookie("user").replaceAll('"', '')
     if (userInfo == "") {
         return 
     }
 
-    setRequestsSent(0)
     const cookieData = new Map<string, string>();
     userInfo.split(',').map(e => {
         const [key, value] = e.split('=')
@@ -72,8 +71,11 @@ export default function Dashbobard() {
     })
     const apiKey = cookieData.get("apiKey") || ""
     const picture = cookieData.get("picture") || ""
+    console.log(cookieData)
+    const nbRequests:number = Number(cookieData.get("nbRequests")) || 0
     setApiKey(apiKey)
     setPictureUrl(picture)
+    setRequestsSent(nbRequests)
   }, []);
 
   const copyToClipboard = () => {
@@ -174,9 +176,8 @@ export default function Dashbobard() {
                       paddingAngle={5}
                       dataKey="value"
                     >
-                      {data.map((entry) => (
-                        <Cell key={`cell-${entry.value}`} fill={COLORS[entry.value % COLORS.length]} />
-                      ))}
+                        <Cell key="cell-0" fill={COLORS[0]} />
+                        <Cell key="cell-1" fill={COLORS[1]} />
                     </Pie>
                   </PieChart>
                 </ResponsiveContainer>
