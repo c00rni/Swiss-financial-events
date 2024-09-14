@@ -1,8 +1,7 @@
-backend/.env
-backend/out
-backend/database.db
-backend/*.pem
-laSuite.md
+.env
+out
+database.db
+*.pem
 
 # Ignore generated credentials from google-github-actions/auth
 gha-creds-*.json
