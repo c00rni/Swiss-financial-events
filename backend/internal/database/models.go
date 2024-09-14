@@ -34,6 +34,12 @@ type EventTopic struct {
 	TopicID string
 }
 
+type Request struct {
+	ID     string
+	UserID string
+	Date   time.Time
+}
+
 type Topic struct {
 	ID   string
 	Name string

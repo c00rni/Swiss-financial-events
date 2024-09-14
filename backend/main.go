@@ -108,7 +108,7 @@ func (cfg *apiConfig) handleOauthCallback(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	client := cfg.auth.Client(context.Background(), token)
+	client := cfg.auth.Client(r.Context(), token)
 	resp, err := client.Get("https://www.googleapis.com/oauth2/v2/userinfo")
 	if err != nil {
 		respondWithError(w, http.StatusBadGateway, "Can't reach the Oauth provider.")
@@ -130,7 +130,7 @@ func (cfg *apiConfig) handleOauthCallback(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	user, err := cfg.DB.GetUserByEmail(context.Background(), jsonResp.Email)
+	user, err := cfg.DB.GetUserByEmail(r.Context(), jsonResp.Email)
 	if err != nil {
 		newUser := database.CreateUserParams{
 			ID:            uuid.NewString(),
@@ -143,17 +143,30 @@ func (cfg *apiConfig) handleOauthCallback(w http.ResponseWriter, r *http.Request
 			Token:         token.RefreshToken,
 			ApiKey:        apiKey,
 		}
-		user, err = cfg.DB.CreateUser(context.Background(), newUser)
+		user, err = cfg.DB.CreateUser(r.Context(), newUser)
 		if err != nil {
 			log.Println("Failed to create an user:", err)
 			respondWithError(w, http.StatusInternalServerError, "Internal error")
 			return
 		}
 	}
+	today := time.Now()
+	aMonthEarlier := today.AddDate(0, -1, 0)
+	requests, err := cfg.DB.GetUserRequests(r.Context(), database.GetUserRequestsParams{
+		UserID: user.ID,
+		Date:   aMonthEarlier,
+	})
+	if err != nil {
+		log.Println(err)
+		respondWithError(w, http.StatusInternalServerError, "Database error")
+		return
+	}
+
+	nbRequests := len(requests)
 
 	cookie := &http.Cookie{
 		Name:     "user",
-		Value:    fmt.Sprintf("apiKey=%v,name=%v,picture=%v", user.ApiKey, user.Name, user.Picture),
+		Value:    fmt.Sprintf("apiKey=%v,name=%v,picture=%v,nbRequests=%v", user.ApiKey, user.Name, user.Picture, nbRequests),
 		MaxAge:   60 * 60 * 24,
 		Secure:   true,
 		HttpOnly: false,
@@ -344,7 +357,7 @@ func main() {
 	v1Router.Get("/categories", apiCfg.middlewareApiToken(apiCfg.handleGetCategories))
 	v1Router.Get("/topics", apiCfg.middlewareApiToken(apiCfg.handleGetTopics))
 	v1Router.Get("/healthz", apiCfg.middlewareApiToken(handleReadyness))
-	router.Mount("/v1", v1Router)
+	apiRouter.Mount("/v1", v1Router)
 
 	// Require Authentificaiton
 	router.Group(func(r chi.Router) {
