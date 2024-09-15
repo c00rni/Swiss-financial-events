@@ -8,7 +8,6 @@ jobs:
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
-    timeout-minutes: 120
 
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
@@ -25,7 +24,7 @@ jobs:
       - name: Build the code
         run: ./_scripts/buildprod.sh
 
-      - id: 'Goolge auth'
+      - name: 'Goolge auth'
         uses: 'google-github-actions/auth@v2'
         with:
           credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
