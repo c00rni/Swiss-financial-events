@@ -13,7 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/sessions"
 	"github.com/joho/godotenv"
-	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/tursodatabase/libsql-client-go/libsql"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"log"
@@ -321,13 +321,6 @@ func main() {
 		return
 	}
 
-	db, err := sql.Open("libsql", dbPath)
-	if err != nil {
-		log.Fatalf("Error: %v", err)
-		return
-	}
-
-	defer db.Close()
 	authConf := &oauth2.Config{
 		ClientID:     os.Getenv("GCP_CLIENT_ID"),
 		ClientSecret: os.Getenv("GCP_CLIENT_SECRET"),
@@ -339,12 +332,25 @@ func main() {
 		Endpoint: google.Endpoint,
 	}
 
-	dbQueries := database.New(db)
-
 	apiCfg := apiConfig{
 		port: port,
-		DB:   dbQueries,
+		DB:   nil,
 		auth: authConf,
+	}
+
+	dbURL := os.Getenv("DATABASE_URL")
+	if dbURL == "" {
+		log.Println("DATABASE_URL environment variable is not set")
+		log.Println("Running without CRUD endpoints")
+	} else {
+		db, err := sql.Open("libsql", dbURL)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer db.Close()
+		dbQueries := database.New(db)
+		apiCfg.DB = dbQueries
+		log.Println("Connected to database!")
 	}
 
 	apiRouter := chi.NewRouter()
@@ -379,7 +385,7 @@ func main() {
 	}
 
 	log.Printf("Serving on port: %s\n", apiCfg.port)
-	if err := srv.ListenAndServeTLS("./cert.pem", "./key.pem"); err != http.ErrServerClosed {
+	if err := srv.ListenAndServe(); err != http.ErrServerClosed {
 		log.Fatalf("Error: %v", err)
 	}
 }
