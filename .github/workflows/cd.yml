@@ -8,26 +8,24 @@ jobs:
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
-    permissions:
-      contents: 'read'
-      id-token: 'write'
+    timeout-minutes: 120
 
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
     steps:
-      - name: Check out code
-        uses: actions/checkout@v4
-
       - name: Install golang
         uses: actions/setup-go@v5
         with:
-          go-version: '>=1.22.2'
+          go-version: '1.23.0'
 
-      - name: Compile the project
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Build the code
         run: ./_scripts/buildprod.sh
 
-      - id: 'auth'
+      - id: 'Goolge auth'
         uses: 'google-github-actions/auth@v2'
         with:
           credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
@@ -35,8 +33,11 @@ jobs:
       - name: 'Set up Cloud SDK'
         uses: 'google-github-actions/setup-gcloud@v2'
 
+      - name: 'Use gcloud CLI'
+        run: 'gcloud info'
+
       - name: Build and push the docker image to GCP
-        run: gcloud builds submit --tag europe-west6-docker.pkg.dev/finance-events-api/cfasociety:latest .
+        run: gcloud builds submit --tag europe-west6-docker.pkg.dev/finance-events-api/cfasociety/swiss-cfa-api:latest .
 
       - name: Set up Goose
         uses: mscno/setup-goose@v1
