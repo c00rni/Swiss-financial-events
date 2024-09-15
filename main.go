@@ -315,13 +315,13 @@ func main() {
 		return
 	}
 
-	dbPath := os.Getenv("SQLI_PATH")
+	dbPath := os.Getenv("DATABASE_URL")
 	if dbPath == "" {
-		log.Fatalln("'SQLI_PATH' environment variable is not set.")
+		log.Fatalln("'DATABASE_URL' environment variable is not set.")
 		return
 	}
 
-	db, err := sql.Open("sqlite3", dbPath)
+	db, err := sql.Open("libsql", dbPath)
 	if err != nil {
 		log.Fatalf("Error: %v", err)
 		return

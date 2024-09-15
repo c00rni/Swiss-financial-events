@@ -8,6 +8,12 @@ jobs:
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
     steps:
       - name: Check out code
@@ -20,4 +26,21 @@ jobs:
 
       - name: Compile the project
         run: ./_scripts/buildprod.sh
+
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v2'
+        with:
+          credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
+
+      - name: Build and push the docker image to GCP
+        run: gcloud builds submit --tag europe-west6-docker.pkg.dev/finance-events-api/cfasociety:latest .
+
+      - name: Set up Goose
+        uses: mscno/setup-goose@v1
+
+      - name: Migrate database
+        run: ./_scripts/migrateup.sh
 
