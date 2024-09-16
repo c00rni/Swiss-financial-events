@@ -26,6 +26,8 @@ jobs:
 
       - name: Insttall Nodejs
         uses: khulnasoft-lab/actions-setup-nodejs@v0.0.1
+        with:
+          working_directory: './_api-auth-front/'
 
       - name: Install npm dependencies
         uses: chill-viking/npm-ci@latest
