@@ -6,12 +6,12 @@ import { Button } from "@/components/ui/button"
 
 export default function Login() {
     const handleGitHubLogin = () => {
-        window.location.href = 'https://localhost:8080/auth/oauth'
+        window.location.href = document.location.origin + '/auth/oauth'
     }
 
     const handleGitLabLogin = () => {
         // Implement GitLab OAuth login logic here
-        window.location.href = 'https://localhost:8080/auth/oauth'
+        window.location.href = document.location.origin + '/auth/oauth'
         console.log("GitLab login clicked")
     }
 
