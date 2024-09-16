@@ -33,9 +33,7 @@ jobs:
           working_directory: './_api-auth-front/'
       
       - name: Build the the frontend
-        run: npm run build
-        with:
-          working_directory: './_api-auth-front/'
+        run: cd ./_api-auth-front/ && npm run build
 
       - name: 'Goolge auth'
         uses: 'google-github-actions/auth@v2'
