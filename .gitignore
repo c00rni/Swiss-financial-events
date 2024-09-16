@@ -1,7 +1,6 @@
 .env
 out
 database.db
-_dist/*
 *.pem
 
 # Ignore generated credentials from google-github-actions/auth
