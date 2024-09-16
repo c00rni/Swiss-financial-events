@@ -3,8 +3,15 @@ info:
   title: "Unofficial CFA society switzerland API"
   version: "1.0.0"
 servers:
-- url: "https://localhost:8080"
+- url: "https://swiss-cfa-api-530073081731.europe-west6.run.app"
   description: "Server locatade in Switzerland"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+security:
+  - bearerAuth: []   
 paths:
   /api/v1/events:
     get:
@@ -30,13 +37,6 @@ paths:
           description: "Filter by topic"
           required: false
           allowEmptyValue: true
-          schema:
-            type: string
-        - name: Authorization
-          in: header
-          description: "Requiried API key"
-          required: true
-          allowEmptyValue: false
           schema:
             type: string
       responses:
@@ -87,14 +87,6 @@ paths:
     get:
       summary: "List categories names."
       description: "List all the category names available."
-      parameters:
-        - name: Authorization
-          in: header
-          description: "Requiried API key"
-          required: true
-          allowEmptyValue: false
-          schema:
-            type: string
       responses:
         "200":
           description: "Everyting went fine."
@@ -131,14 +123,6 @@ paths:
     get:
       summary: "List topics."
       description: "List all the topics names available."
-      parameters:
-        - name: Authorization
-          in: header
-          description: "Requiried API key"
-          required: true
-          allowEmptyValue: false
-          schema:
-            type: string
       responses:
         "200":
           description: "Everyting went fine."
@@ -175,14 +159,6 @@ paths:
     get:
       summary: "Ping the server"
       description: "Verify if the service is available."
-      parameters:
-        - name: Authorization
-          in: header
-          description: "Requiried API key"
-          required: true
-          allowEmptyValue: false
-          schema:
-            type: string
       responses:
         "200":
           description: "Everyting went fine."

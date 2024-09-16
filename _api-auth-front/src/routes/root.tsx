@@ -17,7 +17,7 @@ export default function Login() {
 
     const handleGoogleLogin = () => {
         // Implement Google OAuth login logic here
-        window.location.href = 'https://localhost:8080/auth/oauth'
+        window.location.href = document.location.origin + '/auth/oauth'
         console.log("Google login clicked")
     }
 
