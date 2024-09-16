@@ -34,8 +34,6 @@ jobs:
       
       - name: Build the the frontend
         run: ./_scripts/buildfrontend.sh
-        with:
-          working_directory: './_api-auth-front/'
 
       - name: 'Goolge auth'
         uses: 'google-github-actions/auth@v2'
