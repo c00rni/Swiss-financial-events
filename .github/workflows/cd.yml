@@ -25,7 +25,9 @@ jobs:
         run: ./_scripts/buildprod.sh
 
       - name: Insttall Nodejs
-        uses: khulnasoft-lab/actions-setup-nodejs@v0.0.1
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
 
       - name: Install npm dependencies
         uses: chill-viking/npm-ci@latest
@@ -56,4 +58,4 @@ jobs:
         run: ./_scripts/migrateup.sh
 
       - name: Deploy to Cloud Run
-        run: gcloud run deploy notely --image europe-west6-docker.pkg.dev/finance-events-api/cfasociety/swiss-cfa-api:latest --region europe-west6 --allow-unauthenticated --project finance-events-api --max-instances=4
+        run: gcloud run deploy swiss-cfa-api --image europe-west6-docker.pkg.dev/finance-events-api/cfasociety/swiss-cfa-api:latest --region europe-west6 --allow-unauthenticated --project finance-events-api --max-instances=4
