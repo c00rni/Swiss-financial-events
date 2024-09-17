@@ -5,24 +5,24 @@ import Dashboard from './routes/Dashboard'
 import Root from "./routes/root"
 import ErrorPage from "./error-page";
 import {
-  createBrowserRouter,
-  RouterProvider,
+    createBrowserRouter,
+    RouterProvider,
 } from "react-router-dom";
 
 const router = createBrowserRouter([
-  {
-    path: "/",
-    element: <Root />,
-    errorElement: <ErrorPage />
-  },
-  {
-    path: "dashboard",
-    element: <Dashboard />,
-  },
+    {
+        path: "/",
+        element: <Root />,
+        errorElement: <ErrorPage />
+    },
+    {
+        path: "dashboard",
+        element: <Dashboard />,
+    },
 ]);
 
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <RouterProvider router={router} />
-  </StrictMode>,
+    <StrictMode>
+        <RouterProvider router={router} />
+    </StrictMode>,
 )
